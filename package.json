@@ -1,0 +1,22 @@
+{
+  "name": "discord-email-verifier",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Archie Stevens",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3",
+    "nodemailer": "^6.9.1"
+  },
+  "devDependencies": {
+    "4": "^0.0.0",
+    "nodemon": "^2.0.20",
+    "prettier": "^2.8.4"
+  }
+}
