@@ -9,7 +9,7 @@ module.exports = {
   },
   async execute(interaction, client) {
     // Read the codes from the JSON file
-    var codes = require(`../../codes.json`);
+    let codes = require(`../../codes.json`);
     console.log(codes);
     // Check if the entered code is valid
     const enteredCode = interaction.fields
@@ -25,13 +25,18 @@ module.exports = {
       const universityID = await interaction.guild.roles.fetch(
         codes[enteredCode].id.toString()
       );
-      console.log(universityID);
+      //console.log(universityID);
       await interaction.member.roles.add([universityID]).catch(console.error);
       //console.log(interaction.member.roles);
       // Do something to mark the code as used (e.g. delete it from the JSON file)
-      //delete codes[enteredCode.toString()];
+      delete codes[enteredCode.toString()];
       //fs.writeFileSync("./src/codes.json", JSON.stringify(codes));
+      interaction.reply({
+        content: "Success! You now have the role " + universityID.name,
+        ephemeral: true,
+      });
     } else {
+      delete codes[enteredCode.toString()];
       interaction.reply({
         content: "Code is invalid or has expired, please try again",
         ephemeral: true,
