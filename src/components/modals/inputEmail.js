@@ -2,37 +2,49 @@ const fs = require("fs");
 const universities = require(`../../universities.json`);
 const nodemailer = require("nodemailer");
 const { EMAIL_USER, EMAIL_PASSWORD } = process.env;
+const sqlite3 = require("sqlite3").verbose();
 
 module.exports = {
   data: {
     name: `emailInput`,
   },
   async execute(interaction, client) {
-    console.log(interaction.fields);
-
+    // Get email from the field
     const email = interaction.fields.getTextInputValue(`emailInput`);
-
-    //Check if input matches a valid email address
+    console.log("Hello 1");
+    // Check if input matches a valid email address
     if (
       /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(
         email
       )
     ) {
-      //Check if that valid email is in the universities list
+      // Check if that valid email is in the universities list
+      console.log("Hello 2");
       if (
         universities.hasOwnProperty(email.substring(email.lastIndexOf("@") + 1))
       ) {
-        await mailer(
+        //Email the address with a generated 6-digit code
+        console.log("Hello 3");
+        generateCode(
           email,
-          generateCode(
-            universities[email.substring(email.lastIndexOf("@") + 1)]
-          )
+          interaction.member.user.id,
+          universities[email.substring(email.lastIndexOf("@") + 1)],
+          (err, code) => {
+            if (err) {
+              console.error(err);
+            } else {
+            }
+          }
         );
+        // await mailer(email, code);
+        // Tell the user that the email has been sent. Make it only visible to them
         await interaction.reply({
           content: "Please check the email sent to " + email,
           ephemeral: true,
         });
       } else {
+        // If the address is not in the list
+        // Tell the user to contact an admin.  Make it only visible to them
         await interaction.reply({
           content:
             "We don't currently support the email ending: " +
@@ -42,6 +54,7 @@ module.exports = {
         });
       }
     } else {
+      // Tell the user if the email they entered was invalid
       await interaction.reply({
         content: "Please enter a valid email address",
         ephemeral: true,
@@ -50,29 +63,51 @@ module.exports = {
   },
 };
 
-function generateCode(university) {
-  let codes = {};
+// Generate a new verification code
+function generateCode(email, userID, university, callback) {
+  console.log("Hello 4");
+  let code = Math.floor(100000 + Math.random() * 900000);
+  let currentTime = new Date().getTime();
+  // Open the SQLite database file
+  const db = new sqlite3.Database("codes.db");
+  console.log("Hello 5");
+  db.get("SELECT code FROM codes WHERE code = ?", code, (err, row) => {
+    if (err) {
+      // Handle the error
+      console.log(err);
+      return "ERROR";
+    } else if (row) {
+      // The code is already in the database, generate a new one
+      generateCode(userID, university, callback);
+    } else {
+      console.log("Hello 7");
+      // The code is not in the database, insert it
+      const expirationTime = currentTime + 60 * 60 * 1000; // 1 hour
 
-  // Check if the codes.json file exists
-  if (fs.existsSync("./src/codes.json")) {
-    // Read the codes from the JSON file
-    const data = fs.readFileSync("./src/codes.json");
-    // Check if the file is empty
-    if (data.length > 0) {
-      codes = JSON.parse(data);
+      db.run(
+        "INSERT INTO codes (code, user_id, university_id, expires) VALUES (?, ?, ?, ?)",
+        [
+          code.toString(),
+          userID.toString(),
+          university.toString(),
+          expirationTime,
+        ],
+        async (err) => {
+          if (err) {
+            // Handle the error
+            console.log(err);
+          } else {
+            // Send the email with the verification code
+            console.log(
+              `Verification code ${code} generated and inserted into database`
+            );
+            await mailer(email, code);
+            return code;
+          }
+        }
+      );
     }
-  }
-
-  // Generate a 6-digit code
-  const code = Math.floor(Math.random() * 900000) + 100000;
-
-  // Set the code to expire in 1 hour (3600 seconds)
-  const expirationTime = new Date().getTime() + 3600000;
-
-  codes[code] = { id: university, expires: expirationTime };
-  fs.writeFileSync("./src/codes.json", JSON.stringify(codes));
-  //Return the code
-  return code;
+  });
 }
 
 async function mailer(toAddress, verifyCode) {
