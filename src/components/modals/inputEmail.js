@@ -21,24 +21,46 @@ module.exports = {
       if (
         universities.hasOwnProperty(email.substring(email.lastIndexOf("@") + 1))
       ) {
-        //Email the address with a generated 6-digit code
-        generateCode(
+        const verifiedDb = new sqlite3.Database("verified_users.db");
+
+        verifiedDb.get(
+          "SELECT email FROM users WHERE email = ?",
           email,
-          interaction.member.user.id,
-          universities[email.substring(email.lastIndexOf("@") + 1)],
-          (err, code) => {
+          async (err, row) => {
             if (err) {
-              console.error(err);
+              // Handle the error
+              console.log(err);
+              return false;
+            } else if (!row) {
+              //Email the address with a generated 6-digit code
+              generateCode(
+                email,
+                interaction.member.user.id,
+                universities[email.substring(email.lastIndexOf("@") + 1)],
+                (err, code) => {
+                  if (err) {
+                    console.error(err);
+                  } else {
+                  }
+                }
+              );
+              // await mailer(email, code);
+              // Tell the user that the email has been sent. Make it only visible to them
+              await interaction.reply({
+                content: "Please check the email sent to **" + email + "**",
+                ephemeral: true,
+              });
             } else {
+              await interaction.reply({
+                content:
+                  "The email address **" + email + "** is already in use.",
+                ephemeral: true,
+              });
             }
           }
         );
-        // await mailer(email, code);
-        // Tell the user that the email has been sent. Make it only visible to them
-        await interaction.reply({
-          content: "Please check the email sent to **" + email + "**",
-          ephemeral: true,
-        });
+
+        verifiedDb.close();
       } else {
         // If the address is not in the list
         // Tell the user to contact an admin.  Make it only visible to them
