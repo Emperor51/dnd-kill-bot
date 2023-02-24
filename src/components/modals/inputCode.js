@@ -42,12 +42,12 @@ module.exports = {
           await interaction.member.roles
             .add([universityID])
             .catch(console.error);
-          await interaction.members.roles
-            .remove([1078482478882373672])
+          await interaction.member.roles
+            .remove(["1078482478882373672"])
             .catch(console.error);
           // Add user to verified database
           const verifiedDb = new sqlite3.Database("verified_users.db");
-          verifiedDb.run(
+          await verifiedDb.run(
             "INSERT INTO users (user_id, email, university_id, first_verify_time) VALUES (?, ?, ?, ?)",
             [row.user_id, row.email, row.university_id, new Date().getTime()],
             async (err) => {
@@ -67,9 +67,21 @@ module.exports = {
           db.close();
           // Tell the user it was a success
           interaction.reply({
-            content: "Great Success!",
+            content:
+              "You have now been verified as a member of" +
+              universityID.name +
+              "!",
             ephemeral: true,
           });
+          interaction.guild.channels.cache
+            .get("1039540240072851486")
+            .send(
+              "Welcome to the **UK Gaming Society** <@" +
+                interaction.member.user.id +
+                "> from **" +
+                universityID.name +
+                "**! Please head to <#1039536554076536862> to pick some roles."
+            );
         }
       }
     );

@@ -11,7 +11,6 @@ module.exports = {
   async execute(interaction, client) {
     // Get email from the field
     const email = interaction.fields.getTextInputValue(`emailInput`);
-    console.log("Hello 1");
     // Check if input matches a valid email address
     if (
       /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/.test(
@@ -19,12 +18,10 @@ module.exports = {
       )
     ) {
       // Check if that valid email is in the universities list
-      console.log("Hello 2");
       if (
         universities.hasOwnProperty(email.substring(email.lastIndexOf("@") + 1))
       ) {
         //Email the address with a generated 6-digit code
-        console.log("Hello 3");
         generateCode(
           email,
           interaction.member.user.id,
@@ -39,7 +36,7 @@ module.exports = {
         // await mailer(email, code);
         // Tell the user that the email has been sent. Make it only visible to them
         await interaction.reply({
-          content: "Please check the email sent to " + email,
+          content: "Please check the email sent to **" + email + "**",
           ephemeral: true,
         });
       } else {
@@ -65,12 +62,10 @@ module.exports = {
 
 // Generate a new verification code
 function generateCode(email, userID, university, callback) {
-  console.log("Hello 4");
   let code = Math.floor(100000 + Math.random() * 900000);
   let currentTime = new Date().getTime();
   // Open the SQLite database file
   const db = new sqlite3.Database("codes.db");
-  console.log("Hello 5");
   db.get("SELECT code FROM codes WHERE code = ?", code, (err, row) => {
     if (err) {
       // Handle the error
@@ -80,7 +75,6 @@ function generateCode(email, userID, university, callback) {
       // The code is already in the database, generate a new one
       generateCode(userID, university, callback);
     } else {
-      console.log("Hello 7");
       // The code is not in the database, insert it
       const expirationTime = currentTime + 60 * 60 * 1000; // 1 hour
 
@@ -134,7 +128,9 @@ async function mailer(toAddress, verifyCode) {
       from: '"UK Gaming Society" <winchestergamingsociety@gmail.com>', // sender address
       to: toAddress, // list of receivers
       subject: "Verify your Discord Account", // Subject line
-      text: "Please enter the following code in discord: " + verifyCode, // plain text body
+      text:
+        "Welcome to the UK Gaming Society. \nPlease enter the following code in Discord: " +
+        verifyCode, // plain text body
       //html: "<b>Hello world?</b>", // html body
     },
     function (error, info) {
