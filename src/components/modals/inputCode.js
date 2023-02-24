@@ -19,7 +19,7 @@ module.exports = {
     const currentTime = new Date().getTime();
 
     db.get(
-      "SELECT university_id, user_id FROM codes WHERE code = ? AND expires > ?",
+      "SELECT university_id, user_id, email FROM codes WHERE code = ? AND expires > ?",
       [enteredCode, currentTime],
       async (err, row) => {
         if (err) {
@@ -42,6 +42,25 @@ module.exports = {
           await interaction.member.roles
             .add([universityID])
             .catch(console.error);
+          await interaction.members.roles
+            .remove([1078482478882373672])
+            .catch(console.error);
+          // Add user to verified database
+          const verifiedDb = new sqlite3.Database("verified_users.db");
+          verifiedDb.run(
+            "INSERT INTO users (user_id, email, university_id, first_verify_time) VALUES (?, ?, ?, ?)",
+            [row.user_id, row.email, row.university_id, new Date().getTime()],
+            async (err) => {
+              if (err) {
+                // Handle the error
+                console.log(err);
+              } else {
+                // Send the email with the verification code
+                console.log(`User added to the database`);
+              }
+            }
+          );
+
           // Delete the verification code from the database
           db.run("DELETE FROM codes WHERE code = ?", enteredCode);
           // Close the database

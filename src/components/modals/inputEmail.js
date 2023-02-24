@@ -85,10 +85,11 @@ function generateCode(email, userID, university, callback) {
       const expirationTime = currentTime + 60 * 60 * 1000; // 1 hour
 
       db.run(
-        "INSERT INTO codes (code, user_id, university_id, expires) VALUES (?, ?, ?, ?)",
+        "INSERT INTO codes (code, user_id, email, university_id, expires) VALUES (?, ?, ?, ?, ?)",
         [
           code.toString(),
           userID.toString(),
+          email,
           university.toString(),
           expirationTime,
         ],

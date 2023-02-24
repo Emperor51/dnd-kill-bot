@@ -18,9 +18,19 @@ module.exports = {
       .setCustomId("code")
       .setLabel("Enter Code")
       .setStyle(ButtonStyle.Primary);
-
+    const button3 = new ButtonBuilder()
+      .setLabel("Help")
+      .setURL("https://forms.gle/bQoPRo6JCsNKc5Qc6")
+      .setStyle(ButtonStyle.Link);
     await interaction.channel.send({
-      components: [new ActionRowBuilder().addComponents(button1, button2)],
+      content: `Welcome to the UK Gaming Society! Please verify your student status using the buttons below. 
+      \nFirst, click \`Enter Email\` below and type in your full student email address e.g. \`'john.appleseed@university.ac.uk'\`
+      \nSecond, check your emails. When you receive your 6-digit code, click \`Enter Code\`, type in your code, and press \`Submit\`
+      \nYou should now be verified with your University. If we don't support your university yet or something else goes wrong, 
+click the help link, fill in the form, and we'll try and help as soon as possible.`,
+      components: [
+        new ActionRowBuilder().addComponents(button1, button2, button3),
+      ],
     });
   },
 };

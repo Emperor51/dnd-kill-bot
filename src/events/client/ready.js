@@ -5,14 +5,14 @@ module.exports = {
   once: "true",
   async execute(client) {
     console.log(`Ready!!! ${client.user.tag} is logged in and online.`);
-    //
+
     // // Open a new SQLite database file
-    // const db = new sqlite3.Database("codes.db");
+    // const db = new sqlite3.Database("verified_users.db");
     //
     // // Create a new table to store the verification codes
     // db.serialize(() => {
     //   db.run(
-    //     "CREATE TABLE IF NOT EXISTS codes (code TEXT PRIMARY KEY, user_id TEXT, university_id TEXT, expires INTEGER)"
+    //     "CREATE TABLE IF NOT EXISTS users (user_id TEXT PRIMARY KEY, email TEXT, university_id TEXT, first_verify_time INTEGER)"
     //   );
     // });
     //
