@@ -1,7 +1,3 @@
-const fs = require("fs");
-const universities = require(`../../universities.json`);
-const nodemailer = require("nodemailer");
-const { EMAIL_USER, EMAIL_PASSWORD } = process.env;
 const sqlite3 = require("sqlite3").verbose();
 
 module.exports = {
@@ -27,18 +23,23 @@ module.exports = {
           console.log(err);
         } else if (!row) {
           // Verification code is invalid or has expired
-          console.log("Invalid verification code");
+          interaction.reply({
+            content:
+              "This code is invalid or has expired. Please request a new code using `Enter Email`.",
+            ephemeral: true,
+          });
         } else if (interaction.member.user.id.toString() !== row.user_id) {
           // This verification code is not valid for your user
-          console.log("Verification code not valid for this user");
+          interaction.reply({
+            content:
+              "This code is invalid for your user. Please try again with a different code.",
+            ephemeral: true,
+          });
         } else {
           // Add Role
           const universityID = await interaction.guild.roles.fetch(
             row.university_id
           );
-          // Verification code is valid
-          console.log(`Email verified for university ID ${universityID}`);
-          //console.log(universityID);
           await interaction.member.roles
             .add([universityID])
             .catch(console.error);
@@ -54,6 +55,16 @@ module.exports = {
               if (err) {
                 // Handle the error
                 console.log(err);
+                interaction.guild.channels.cache
+                  .get("1078995538680238160")
+                  .send(
+                    "An error occurred adding" +
+                      interaction.member.user.username +
+                      "to the database. They are from " +
+                      universityID.name +
+                      "and their email is " +
+                      row.email
+                  );
               } else {
                 // Send the email with the verification code
                 console.log(`User added to the database`);
@@ -85,28 +96,5 @@ module.exports = {
         }
       }
     );
-
-    // console.log(codes);
-    // // Check if the entered code is valid
-    // // replace with the actual entered code
-    // console.log(codes[enteredCode.toString()].expires > new Date().getTime());
-    // if (
-    //   codes.hasOwnProperty(enteredCode.toString()) &&
-    //   codes[enteredCode.toString()].expires > new Date().getTime()
-    // ) {
-    //   console.log("HELLO, IM A VALID CODE: " + codes[enteredCode].id);
-    //   // Code is valid
-    //
-    //   //console.log(interaction.member.roles);
-    //   // Do something to mark the code as used (e.g. delete it from the JSON file)
-    //   delete codes[enteredCode.toString()];
-    //   //fs.writeFileSync("./src/codes.json", JSON.stringify(codes));
-    //   interaction.reply({
-    //     content: "Success! You now have the role " + universityID.name,
-    //     ephemeral: true,
-    //   });
-    // } else {
-    //   delete codes[enteredCode.toString()];
-    // }
   },
 };
