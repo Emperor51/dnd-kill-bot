@@ -1,5 +1,4 @@
 const fs = require("fs");
-const universities = require(`../../universities.json`);
 const nodemailer = require("nodemailer");
 const { EMAIL_USER, EMAIL_PASSWORD } = process.env;
 const sqlite3 = require("sqlite3").verbose();
@@ -17,61 +16,60 @@ module.exports = {
         email
       )
     ) {
-      // Check if that valid email is in the universities list
-      if (
-        universities.hasOwnProperty(email.substring(email.lastIndexOf("@") + 1))
-      ) {
-        const verifiedDb = new sqlite3.Database("verified_users.db");
-
-        verifiedDb.get(
-          "SELECT email FROM users WHERE email = ?",
-          email,
-          async (err, row) => {
-            if (err) {
-              // Handle the error
-              console.log(err);
-              return false;
-            } else if (!row) {
-              //Email the address with a generated 6-digit code
-              generateCode(
-                email,
-                interaction.member.user.id,
-                universities[email.substring(email.lastIndexOf("@") + 1)],
-                (err, code) => {
-                  if (err) {
-                    console.error(err);
-                  } else {
-                  }
+      const db = new sqlite3.Database("ukgs.db");
+      // See if domain is valid //
+      db.get(
+        "SELECT domain, roleID FROM unis WHERE domain = ?",
+        email.substring([email.lastIndexOf("@") + 1]),
+        async (err, row) => {
+          if (err) {
+            console.log(err);
+          } else if (!row) {
+            console.log(
+              "Invalid Domain: " + email.substring([email.lastIndexOf("@") + 1])
+            );
+          } else {
+            // See if email has already been used //
+            db.get(
+              "SELECT email FROM users WHERE email = ?",
+              email,
+              async (err, row2) => {
+                if (err) {
+                  // Handle the error
+                  console.log(err);
+                } else if (!row2) {
+                  // Email the address with a generated 6-digit code //
+                  generateCode(
+                    db,
+                    email,
+                    interaction.member.user.id,
+                    row.roleID,
+                    (err, code) => {
+                      if (err) {
+                        console.error(err);
+                      } else {
+                      }
+                    }
+                  );
+                  // Tell the user that the email has been sent. Make it only visible to them
+                  await interaction.reply({
+                    content: "Please check the email sent to **" + email + "**",
+                    ephemeral: true,
+                  });
+                } else {
+                  await interaction.reply({
+                    content:
+                      "The email address **" + email + "** is already in use.",
+                    ephemeral: true,
+                  });
                 }
-              );
-              // await mailer(email, code);
-              // Tell the user that the email has been sent. Make it only visible to them
-              await interaction.reply({
-                content: "Please check the email sent to **" + email + "**",
-                ephemeral: true,
-              });
-            } else {
-              await interaction.reply({
-                content:
-                  "The email address **" + email + "** is already in use.",
-                ephemeral: true,
-              });
-            }
-          }
-        );
+              }
+            );
 
-        verifiedDb.close();
-      } else {
-        // If the address is not in the list
-        // Tell the user to contact an admin.  Make it only visible to them
-        await interaction.reply({
-          content:
-            "We don't currently support the email ending: " +
-            email.substring(email.lastIndexOf("@") + 1) +
-            ". Please contact an Admin for support",
-          ephemeral: true,
-        });
-      }
+            db.close();
+          }
+        }
+      );
     } else {
       // Tell the user if the email they entered was invalid
       await interaction.reply({
@@ -83,11 +81,10 @@ module.exports = {
 };
 
 // Generate a new verification code
-function generateCode(email, userID, university, callback) {
+function generateCode(db, email, userID, university, callback) {
   let code = Math.floor(100000 + Math.random() * 900000);
   let currentTime = new Date().getTime();
   // Open the SQLite database file
-  const db = new sqlite3.Database("codes.db");
   db.get("SELECT code FROM codes WHERE code = ?", code, (err, row) => {
     if (err) {
       // Handle the error

@@ -6,7 +6,7 @@ module.exports = {
   },
   async execute(interaction, client) {
     // Open the SQLite database file
-    const db = new sqlite3.Database("codes.db");
+    const db = new sqlite3.Database("ukgs.db");
 
     // Check if the verification code is valid
     const enteredCode = interaction.fields
@@ -47,8 +47,7 @@ module.exports = {
             .remove(["1078482478882373672"])
             .catch(console.error);
           // Add user to verified database
-          const verifiedDb = new sqlite3.Database("verified_users.db");
-          await verifiedDb.run(
+          await db.run(
             "INSERT INTO users (user_id, email, university_id, first_verify_time) VALUES (?, ?, ?, ?)",
             [row.user_id, row.email, row.university_id, new Date().getTime()],
             async (err) => {
@@ -56,7 +55,7 @@ module.exports = {
                 // Handle the error
                 console.log(err);
                 interaction.guild.channels.cache
-                  .get("1078995538680238160")
+                  .get("1079391197480620152")
                   .send(
                     "An error occurred adding" +
                       interaction.member.user.username +
@@ -85,7 +84,7 @@ module.exports = {
             ephemeral: true,
           });
           interaction.guild.channels.cache
-            .get("1039540240072851486")
+            .get("1079391197480620152")
             .send(
               "Welcome to the **UK Gaming Society** <@" +
                 interaction.member.user.id +
