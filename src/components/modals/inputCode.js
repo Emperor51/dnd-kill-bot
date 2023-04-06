@@ -65,8 +65,24 @@ module.exports = {
                       row.email
                   );
               } else {
-                // Send the email with the verification code
                 console.log(`User added to the database`);
+                // Tell the user it was a success;
+                interaction.reply({
+                  content:
+                    "You have now been verified as a member of" +
+                    universityID.name +
+                    "!",
+                  ephemeral: true,
+                });
+                interaction.guild.channels.cache
+                  .get("1079391197480620152")
+                  .send(
+                    "Welcome to the **UK Gaming Society** <@" +
+                      interaction.member.user.id +
+                      "> from **" +
+                      universityID.name +
+                      "**! Please head to <#1039536554076536862> to pick some roles."
+                  );
               }
             }
           );
@@ -75,23 +91,6 @@ module.exports = {
           db.run("DELETE FROM codes WHERE code = ?", enteredCode);
           // Close the database
           db.close();
-          // Tell the user it was a success
-          interaction.reply({
-            content:
-              "You have now been verified as a member of" +
-              universityID.name +
-              "!",
-            ephemeral: true,
-          });
-          interaction.guild.channels.cache
-            .get("1079391197480620152")
-            .send(
-              "Welcome to the **UK Gaming Society** <@" +
-                interaction.member.user.id +
-                "> from **" +
-                universityID.name +
-                "**! Please head to <#1039536554076536862> to pick some roles."
-            );
         }
       }
     );
