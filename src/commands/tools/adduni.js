@@ -3,49 +3,60 @@ const sqlite3 = require("sqlite3").verbose();
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("adduni")
-    .setDescription("Add a univerity domain to the list")
-    .addStringOption((email) =>
-      email
-        .setName("email")
-        .setDescription("email domain for the university")
+    .setName("addkill")
+    .setDescription("Add a kill to the tracker")
+    .addUserOption((user) =>
+      user
+        .setName("user")
+        .setDescription("player who got the kill")
         .setRequired(true)
     )
-    .addRoleOption((role) =>
-      role
-        .setName("role")
-        .setDescription("role to link to the domain")
+    .addIntegerOption((kill) =>
+      kill
+        .setName("kill")
+        .setDescription("number of enemies killed")
         .setRequired(true)
+    )
+    .addStringOption((comment) =>
+      comment
+        .setName("comment")
+        .setDescription("comment about the kill e.g. monster type")
+        .setRequired(false)
+    )
+    .addBooleanOption((boss) =>
+      boss
+        .setName("boss")
+        .setDescription("was the enemy a boss")
+        .setRequired(false)
     ),
 
   async execute(interaction, client) {
-    const email = interaction.options.getString("email");
-    const role = interaction.options.getRole("role");
-    console.log(email, role.id);
-    // Open a new SQLite database file
-    const db = new sqlite3.Database("ukgs.db");
+    const user = interaction.options.getUser("user");
+    const kill = interaction.options.getInteger("kill");
+    const comment = interaction.options.getString("comment");
+    const boss = interaction.options.getBoolean("boss");
+    let now = new Date().toISOString(); //now.format("dd/MM/yyyy hh:mm TT");
+    now.toLocaleString()
+
+    console.log("A new kill has been made", user, kill, comment, boss)
+    const db = new sqlite3.Database("kills.db")
 
     await db.run(
-      "INSERT INTO unis (domain, roleID) VALUES (?, ?)",
-      [email, role.id],
+      "INSERT INTO kills (user, killCount, comment, boss, dateTime) VALUES (?, ?, ?, ?, ?)",
+      [user.id, kill, comment, boss, now],
       async (err) => {
         if (err) {
           // Handle the error
           console.log(err);
           interaction.reply({
-            content: "An error occurred adding this domain: " + err.toString(),
+            content: "An error occurred adding this kill: " + err.toString(),
             ephemeral: true,
           });
         } else {
           // Send the email with the verification code
           interaction.reply({
-            content:
-              "Domain: **" +
-              email +
-              "** has been linked to the role: **" +
-              interaction.guild.roles.fetch(role) +
-              "**",
-            ephemeral: true,
+            content: `Kill has been added! User: ${user}, Kill Count: ${kill}, Comment: ${comment}, Boss: ${boss}, Time: ${now}`,
+            ephemeral: false,
           });
         }
       }

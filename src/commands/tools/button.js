@@ -2,7 +2,7 @@ const {
   SlashCommandBuilder,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle,
+  ButtonStyle, SelectMenuBuilder, EmbedBuilder,
 } = require("discord.js");
 
 module.exports = {
@@ -11,25 +11,89 @@ module.exports = {
     .setDescription("Return a button!"),
   async execute(interaction, client) {
     const button1 = new ButtonBuilder()
-      .setCustomId("verify")
-      .setLabel("Enter Email")
-      .setStyle(ButtonStyle.Primary);
+      .setCustomId("quick")
+      .setLabel("Quick Add")
+      .setStyle(ButtonStyle.Success);
     const button2 = new ButtonBuilder()
-      .setCustomId("code")
-      .setLabel("Enter Code")
+      .setCustomId("special")
+      .setLabel("Special Add")
       .setStyle(ButtonStyle.Primary);
     const button3 = new ButtonBuilder()
-      .setLabel("Help")
-      .setURL("https://forms.gle/bQoPRo6JCsNKc5Qc6")
-      .setStyle(ButtonStyle.Link);
+      .setCustomId("list")
+      .setLabel("List Kills")
+      .setStyle(ButtonStyle.Secondary);
+    const playerList = new SelectMenuBuilder()
+      .setCustomId("playerSelect")
+      .setPlaceholder('Please select a player.')
+      .setMinValues(1)
+      .setMaxValues(1)
+      .setOptions([
+        {
+          label: `Aria (Chelsea)`,
+          value: `689908785715609752`
+        },
+        {
+          label: `Han (Matthew)`,
+          value: `453256268128321556`
+        },
+        {
+          label: `Lotgred (Callum)`,
+          value: `116942744928124937`
+        },
+        {
+          label: `Nanzo (Matt)`,
+          value: `325577612229476362`
+        },
+        {
+          label: `Sollen (Katy)`,
+          value: `697155562646929458`
+        },
+        {
+          label: `Thymur (Archie)`,
+          value: `177305511849361409`
+        },
+      ])
+    const killsEmbed = new EmbedBuilder()
+      .setColor(0xff0000)
+      .setTitle('Kill Counter')
+      .setDescription('Kill Counter for the D&D Campaign Tyrrany of Phandalever.')
+      .setFields([
+        {
+          name: `Aria`,
+          value: `0`,
+          inline: true
+        },
+        {
+          name: `Han`,
+          value: `0`,
+          inline: true
+        },
+        {
+          name: `Lotgred`,
+          value: `0`,
+          inline: true
+        },
+        {
+          name: `Nanzo`,
+          value: `0`,
+          inline: true
+        },
+        {
+          name: `Sollen`,
+          value: `0`,
+          inline: true
+        },
+        {
+          name: `Thymur`,
+          value: `0`,
+          inline: true
+        },
+      ])
+
     await interaction.channel.send({
-      content: `Welcome to the UK Gaming Society! Please verify your student status using the buttons below. 
-      \nFirst, click \`Enter Email\` below and type in your full student email address e.g. \`'john.appleseed@university.ac.uk'\`
-      \nSecond, check your emails. When you receive your 6-digit code, click \`Enter Code\`, type in your code, and press \`Submit\`
-      \nYou should now be verified with your University. If we don't support your university yet or something else goes wrong, 
-click the help link, fill in the form, and we'll try and help as soon as possible.
-      \n*Please note, your email address is stored alongside your DiscordID. This is automatically deleted if you leave this server.*`,
+      embeds: [killsEmbed],
       components: [
+        new ActionRowBuilder().addComponents(playerList),
         new ActionRowBuilder().addComponents(button1, button2, button3),
       ],
     });
